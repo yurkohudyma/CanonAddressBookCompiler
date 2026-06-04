@@ -1,0 +1,22 @@
+# Canon AddressBook version: 1
+# CharSet: UTF8
+# dn: fixed
+# DB Version:
+
+dn: 1
+cn:: Sm9obiBEb2U=
+cnread::
+mailaddress: user@gmail.com
+protocol: smtp
+objectclass: top
+objectclass: extensibleobject
+objectclass: email
+
+dn: 2
+cn:: QWRtaW4gUHJpbnRlck1hc3Rlcg==
+cnread::
+mailaddress: admin@ukr.net
+protocol: smtp
+objectclass: top
+objectclass: extensibleobject
+objectclass: email

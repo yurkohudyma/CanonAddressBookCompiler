@@ -24,7 +24,7 @@ public class AddressBookController extends JFrame {
     static GenerateHandler generateHandler = new GenerateHandler();
     static PathSelectorHandler pathSelectorHandler = new PathSelectorHandler();
     static JFileChooser directorySelector;
-    static String emailResult, CANON_FILENAME = "adrs_book_CANON_1440.abk";
+    static String emailResult, nameResult, CANON_FILENAME = "adrs_book_CANON_1440.abk";
     static String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
     static Map<String, String> contactMap = new HashMap<>();
     static File directory;
@@ -52,6 +52,8 @@ public class AddressBookController extends JFrame {
         add(pathChooserButton);
         add(inputPath);
         add(generateButton);
+        inputEmail.addActionListener(generateHandler);
+        inputName.addActionListener(generateHandler);
         generateButton.addActionListener(generateHandler);
         pathChooserButton.addActionListener(pathSelectorHandler);
     }
@@ -64,7 +66,7 @@ public class AddressBookController extends JFrame {
                 int returnValue = directorySelector.showOpenDialog(jFrame);
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
                     directory = directorySelector.getCurrentDirectory();
-                    outputPath = Path.of((directory.getPath() + CANON_FILENAME));
+                    outputPath = Path.of((directory.getPath() + "\\" + CANON_FILENAME));
                     inputPath.setText(directory.getPath());
                 }
                 else {
@@ -78,11 +80,14 @@ public class AddressBookController extends JFrame {
         @Override
         public void actionPerformed(ActionEvent event) {
             if (event.getSource() == generateButton) {
-                var field = (JTextField) event.getSource();
-                //todo придумати, як при натисканні кнопки обробляти дані інших полів
-                emailResult = field.getText();
+                //var field = (JTextField) event.getSource();
+                emailResult = inputEmail.getText();
                 if (emailResult.isEmpty() || !emailResult.matches(EMAIL_REGEX)) {
-                    field.setText("Помилка імейлу");
+                    inputEmail.setText("Помилка імейлу");
+                }
+                nameResult = inputName.getText();
+                if (nameResult.isEmpty()){
+                    inputName.setText("Помилка імені");
                 }
                 else {
                     contactMap.put(emailResult, "John Doe");

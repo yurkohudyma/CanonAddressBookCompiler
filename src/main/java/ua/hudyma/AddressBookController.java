@@ -1,17 +1,19 @@
 package ua.hudyma;
 
+import com.sun.tools.javac.Main;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Map;
 
 public class AddressBookController extends JFrame {
 
@@ -122,7 +124,8 @@ public class AddressBookController extends JFrame {
             for (Map.Entry<String, String> map : contactMap.entrySet()) {
                 var email = map.getKey();
                 var name = map.getValue();
-                var encodedName = Base64.getEncoder()
+                var encodedName = Base64
+                        .getEncoder()
                         .encodeToString(name.getBytes());
                 writer.newLine();
                 for (String templateItem : template) {
@@ -139,7 +142,22 @@ public class AddressBookController extends JFrame {
         }
     }
 
-    private static List<String> readFile(String fileName) throws IOException {
+    /*private static List<String> readFile(String fileName) throws IOException {
         return Files.readAllLines(Paths.get(fileName));
+    }*/
+
+    private static List<String> readFile(String resourceName) throws IOException {
+        try (InputStream is =
+                     Main.class.getResourceAsStream("/" + resourceName)) {
+
+            if (is == null) {
+                throw new FileNotFoundException(resourceName);
+            }
+
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                return br.lines().toList();
+            }
+        }
     }
 }

@@ -53,6 +53,7 @@ public class AddressBookController extends JFrame {
         inputPath.addActionListener(generateHandler);
         pathChooserButton.addActionListener(pathSelectorHandler);
         inputPath.setText(String.valueOf(USER_HOME));
+        outputPath = Paths.get(USER_HOME + "/" + CANON_FILENAME);
     }
 
     static class PathSelectorHandler implements ActionListener {

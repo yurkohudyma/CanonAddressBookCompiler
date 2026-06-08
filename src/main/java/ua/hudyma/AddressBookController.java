@@ -53,7 +53,7 @@ public class AddressBookController extends JFrame {
         inputPath.addActionListener(generateHandler);
         pathChooserButton.addActionListener(pathSelectorHandler);
         inputPath.setText(String.valueOf(USER_HOME));
-        outputPath = Paths.get(USER_HOME + "/" + CANON_FILENAME);
+        outputPath = USER_HOME.toPath().resolve(CANON_FILENAME);
     }
 
     static class PathSelectorHandler implements ActionListener {
@@ -96,6 +96,7 @@ public class AddressBookController extends JFrame {
                         inputName.setText("");
                     } catch (IOException e) {
                         JOptionPane.showMessageDialog(jFrame, "Помилка IOException", "Халепа", JOptionPane.ERROR_MESSAGE);
+                        System.out.println(e.getMessage());
                     }
                     catch (Exception ex){
                         JOptionPane.showMessageDialog(jFrame, "Проблема із записом файла", "Помилка", JOptionPane.ERROR_MESSAGE);
@@ -106,8 +107,8 @@ public class AddressBookController extends JFrame {
     }
 
     private static void generateAddressBook(Map<String, String> contactMap) throws IOException {
-        var header = readFile("src/main/resources/template.header");
-        var template = readFile("src/main/resources/addressbook.template");
+        var header = readFile("template.header");
+        var template = readFile("addressbook.template");
         if (outputPath == null) {
             JOptionPane.showMessageDialog(jFrame, "Path is NULL", "Помилка", JOptionPane.ERROR_MESSAGE);
         }

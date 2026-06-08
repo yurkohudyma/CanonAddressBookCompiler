@@ -1,0 +1,8 @@
+dn:
+cn::
+cnread::
+mailaddress:
+protocol: smtp
+objectclass: top
+objectclass: extensibleobject
+objectclass: email

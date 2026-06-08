@@ -31,7 +31,7 @@ public class AddressBookController extends JFrame {
 
     private static final String DN = "dn:", CN = "cn::", MAIL_ADDRESS = "mailaddress:", SPACE = " ";
 
-    public AddressBookController (String header) {
+    public AddressBookController(String header) {
         super(header);
         setLayout(new FlowLayout());
         jFrame = new JFrame();
@@ -81,27 +81,29 @@ public class AddressBookController extends JFrame {
                     return;
                 }
                 nameResult = inputName.getText();
-                if (nameResult.isEmpty() || nameResult.equals("Помилка імені")){
+                if (nameResult.isEmpty() || nameResult.equals("Помилка імені")) {
                     inputName.setText("Помилка імені");
                     return;
                 }
                 var pathText = inputPath.getText();
-                if (pathText.isEmpty()){
+                if (pathText.isEmpty()) {
                     inputPath.setText("Виберіть шлях");
-                }
-                else {
+                } else {
                     contactMap.put(emailResult, nameResult);
                     try {
                         generateAddressBook(contactMap);
-                        JOptionPane.showMessageDialog(jFrame, "Контакт додано", "Успіх", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(jFrame, "Контакт додано", "Успіх",
+                                JOptionPane.INFORMATION_MESSAGE);
                         inputEmail.setText("");
                         inputName.setText("");
                     } catch (IOException e) {
-                        JOptionPane.showMessageDialog(jFrame, "Помилка IOException", "Халепа", JOptionPane.ERROR_MESSAGE);
-                        System.out.println(e.getMessage());
-                    }
-                    catch (Exception ex){
-                        JOptionPane.showMessageDialog(jFrame, "Проблема із записом файла", "Помилка", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(jFrame, "Помилка IOException", "Халепа",
+                                JOptionPane.ERROR_MESSAGE);
+                        e.printStackTrace();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(jFrame, "Проблема із записом файла", "Помилка",
+                                JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
                     }
                 }
             }
@@ -112,7 +114,9 @@ public class AddressBookController extends JFrame {
         var header = readFile("template.header");
         var template = readFile("addressbook.template");
         if (outputPath == null) {
-            JOptionPane.showMessageDialog(jFrame, "Path is NULL", "Помилка", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(jFrame,
+                    "OutputPath is NULL", "Помилка", JOptionPane.ERROR_MESSAGE);
+            throw new IllegalStateException("OutputPath is NULL");
         }
         try (var writer = Files
                 .newBufferedWriter(outputPath)) {
@@ -142,18 +146,15 @@ public class AddressBookController extends JFrame {
         }
     }
 
-    /*private static List<String> readFile(String fileName) throws IOException {
-        return Files.readAllLines(Paths.get(fileName));
-    }*/
-
     private static List<String> readFile(String resourceName) throws IOException {
         try (InputStream is =
-                     Main.class.getResourceAsStream("/" + resourceName)) {
-
+                     AddressBookController.class.getResourceAsStream("/" + resourceName)) {
             if (is == null) {
+                JOptionPane.showMessageDialog(jFrame,
+                        "Cannot get Resource As Stream from " + resourceName, "Помилка",
+                        JOptionPane.ERROR_MESSAGE);
                 throw new FileNotFoundException(resourceName);
             }
-
             try (BufferedReader br = new BufferedReader(
                     new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 return br.lines().toList();

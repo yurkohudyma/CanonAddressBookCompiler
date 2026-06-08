@@ -9,30 +9,25 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class AddressBookController extends JFrame {
 
+    static final File USER_HOME = new File(System.getProperty("user.home"));
     static JTextField inputEmail, inputName, inputPath;
     static JLabel labelEmail, labelName;
     static JButton generateButton, pathChooserButton;
     static JFrame jFrame;
     static GenerateHandler generateHandler = new GenerateHandler();
     static PathSelectorHandler pathSelectorHandler = new PathSelectorHandler();
-    static JFileChooser directorySelector;
     static String emailResult, nameResult, CANON_FILENAME = "adrs_book_CANON_1440.abk";
     static String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
     static Map<String, String> contactMap = new HashMap<>();
-    static File directory;
     static Path outputPath;
 
     private static final String DN = "dn:", CN = "cn::", MAIL_ADDRESS = "mailaddress:", SPACE = " ";
-
-    //todo зробити єдиний хендлер для кнопки Згенерувати, дані збирати з відповідних полів у змінні.
 
     public AddressBookController (String header) {
         super(header);
@@ -55,23 +50,20 @@ public class AddressBookController extends JFrame {
         inputEmail.addActionListener(generateHandler);
         inputName.addActionListener(generateHandler);
         generateButton.addActionListener(generateHandler);
+        inputPath.addActionListener(generateHandler);
         pathChooserButton.addActionListener(pathSelectorHandler);
+        inputPath.setText(String.valueOf(USER_HOME));
     }
 
     static class PathSelectorHandler implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent event) {
-            if (event.getSource() == pathChooserButton) {
-                directorySelector = new JFileChooser();
-                int returnValue = directorySelector.showOpenDialog(jFrame);
-                if (returnValue == JFileChooser.APPROVE_OPTION) {
-                    directory = directorySelector.getCurrentDirectory();
-                    outputPath = Path.of((directory.getPath() + "\\" + CANON_FILENAME));
-                    inputPath.setText(directory.getPath());
-                }
-                else {
-                    directorySelector.cancelSelection();
-                }
+            var chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            if (chooser.showOpenDialog(jFrame) == JFileChooser.APPROVE_OPTION) {
+                var directory = chooser.getSelectedFile();
+                outputPath = directory.toPath().resolve(CANON_FILENAME);
+                inputPath.setText(directory.getAbsolutePath());
             }
         }
     }
@@ -80,21 +72,32 @@ public class AddressBookController extends JFrame {
         @Override
         public void actionPerformed(ActionEvent event) {
             if (event.getSource() == generateButton) {
-                //var field = (JTextField) event.getSource();
                 emailResult = inputEmail.getText();
                 if (emailResult.isEmpty() || !emailResult.matches(EMAIL_REGEX)) {
                     inputEmail.setText("Помилка імейлу");
+                    return;
                 }
                 nameResult = inputName.getText();
-                if (nameResult.isEmpty()){
+                if (nameResult.isEmpty() || nameResult.equals("Помилка імені")){
                     inputName.setText("Помилка імені");
+                    return;
+                }
+                var pathText = inputPath.getText();
+                if (pathText.isEmpty()){
+                    inputPath.setText("Виберіть шлях");
                 }
                 else {
-                    contactMap.put(emailResult, "John Doe");
+                    contactMap.put(emailResult, nameResult);
                     try {
                         generateAddressBook(contactMap);
+                        JOptionPane.showMessageDialog(jFrame, "Контакт додано", "Успіх", JOptionPane.INFORMATION_MESSAGE);
+                        inputEmail.setText("");
+                        inputName.setText("");
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        JOptionPane.showMessageDialog(jFrame, "Помилка IOException", "Халепа", JOptionPane.ERROR_MESSAGE);
+                    }
+                    catch (Exception ex){
+                        JOptionPane.showMessageDialog(jFrame, "Проблема із записом файла", "Помилка", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -102,30 +105,21 @@ public class AddressBookController extends JFrame {
     }
 
     private static void generateAddressBook(Map<String, String> contactMap) throws IOException {
-        //var emailList = readFile("src/main/resources/email.list");
         var header = readFile("src/main/resources/template.header");
         var template = readFile("src/main/resources/addressbook.template");
-        //var outputPath = Paths.get("src/main/resources/adrs_book_CANON_1440.abk"); //todo implem customer path
         if (outputPath == null) {
-            throw new IllegalArgumentException("PATH cannot be null");
+            JOptionPane.showMessageDialog(jFrame, "Path is NULL", "Помилка", JOptionPane.ERROR_MESSAGE);
         }
-        try (var writer = Files.newBufferedWriter(outputPath)) {
+        try (var writer = Files
+                .newBufferedWriter(outputPath)) {
             for (String line : header) {
                 writer.write(line);
                 writer.newLine();
             }
             var dnCounter = 1;
             for (Map.Entry<String, String> map : contactMap.entrySet()) {
-                /*var parts = emailString.split("\\s+", 2);
-                if (parts.length < 2) {
-                    System.out.println("Введено неповну інфо, ігнорую рядок " + emailString);
-                    continue;
-                }
-                var email = parts[0];
-                var name = parts[1];*/
                 var email = map.getKey();
                 var name = map.getValue();
-
                 var encodedName = Base64.getEncoder()
                         .encodeToString(name.getBytes());
                 writer.newLine();
@@ -146,13 +140,4 @@ public class AddressBookController extends JFrame {
     private static List<String> readFile(String fileName) throws IOException {
         return Files.readAllLines(Paths.get(fileName));
     }
-
-    public static boolean isValidEmail(String email) {
-        if (email == null) return false;
-        return Pattern
-                .compile(EMAIL_REGEX)
-                .matcher(email)
-                .matches();
-    }
-
 }
